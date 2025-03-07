@@ -29,18 +29,16 @@ paths:
       tags:
         - Health
 
-  /stream/{topic}:
-    get:
+  /stream:
+    post:
       summary: Stream response for a topic
-      description: Streams text responses for a given topic using OpenAI's GPT-4o-mini model.
-      parameters:
-        - name: topic
-          in: path
-          required: true
-          schema:
-            type: string
-            description: The topic to generate a streaming response for
-            example: "Python programming"
+      description: Streams text responses for a given topic provided in the request body using OpenAI's GPT-4o-mini model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
       responses:
         "200":
           description: Successful streaming response
@@ -58,6 +56,16 @@ paths:
               schema:
                 type: string
                 example: chunked
+        "400":
+          description: Bad request, e.g., invalid or missing topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Invalid or missing topic"
         "500":
           description: Internal server error
           content:
@@ -70,6 +78,19 @@ paths:
                     example: "Error processing request"
       tags:
         - Streaming
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required:
+        - topic
+      properties:
+        topic:
+          type: string
+          description: The topic to generate a streaming response for
+          example: "Python programming"
+      additionalProperties: false
 
 tags:
   - name: Health

@@ -1,10 +1,10 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from dotenv import load_dotenv
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 import asyncio
 
 load_dotenv()
@@ -20,6 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class QueryRequest(BaseModel):
+    topic: str
 
 async def generate_response(topic: str):
     model = ChatOpenAI(model="gpt-4o-mini")
@@ -28,10 +30,10 @@ async def generate_response(topic: str):
             chunk_content = event["data"]["chunk"].content
             yield chunk_content.encode()
 
-@app.get("/stream/{topic}")
-async def stream_endpoint(topic: str):
+@app.post("/stream")
+async def stream_endpoint(request: QueryRequest):
     return StreamingResponse(
-        generate_response(topic),
+        generate_response(request.topic),
         media_type="text/plain"
     )
 
